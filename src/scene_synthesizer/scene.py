@@ -1883,12 +1883,14 @@ class Scene(object):
             **limit_effort (float, optional): Joint effort limit.
             **limit_lower (float, optional): Lower joint limit.
             **limit_upper (float, optional): Upper joint limit.
+            **stiffness (float, optional): Joint stiffness. Will add a drive to the joint during USD export.
+            **damping (float, optional): Joint damping. Will add a drive to the joint during USD export.
 
         Raises:
             ValueError: Error raised if property is unknown.
         """
         for k in kwargs:
-            if k not in ('name', 'q', 'origin', 'axis', 'type', 'limit_velocity', 'limit_effort', 'limit_lower', 'limit_upper'):
+            if k not in ('name', 'q', 'origin', 'axis', 'type', 'limit_velocity', 'limit_effort', 'limit_lower', 'limit_upper', 'stiffness', 'damping'):
                 raise ValueError(f"Unknown joint property {k}. Can't update.")
         
         parent_node, child_node = self.get_joint_parent_child_node(joint_id)
@@ -1897,10 +1899,8 @@ class Scene(object):
 
         if (parent_node, child_node) not in scene_edge_data:
             raise ValueError(f"Joint {joint_id} not in scene. Can't update its properties.")
-        
-        scene_edge_data[(parent_node, child_node)].update(
-            {"extras": {"joint": {**kwargs}}}
-        )
+
+        scene_edge_data[(parent_node, child_node)]["extras"]["joint"].update({**kwargs})
 
         # clear cache
         self.get_joint_names.cache_clear()
@@ -2107,6 +2107,8 @@ class Scene(object):
             **limit_effort (float, optional): Joint effort limit. Defaults to None.
             **limit_lower (float, optional): Lower joint limit. Defaults to None.
             **limit_upper (float, optional): Upper joint limit. Defaults to None.
+            **stiffness (float, optional): Joint stiffness. Defaults to None.
+            **damping (float, optional): Joint damping. Defaults to None.
 
         Raises:
             ValueError: If name already exists.
