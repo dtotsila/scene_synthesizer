@@ -58,13 +58,15 @@ With `scene_synthesizer` we present a library that simplifies the process of wri
 Assets can be either loaded from file (all standard mesh formats including those representing articulations such as USD, URDF, MJCF) or instantiated from 30 different procedural objects, most of them kitchen-themed.
 The placement of assets is supported by defining object-agnostic anchor points, or through automatic labelling of support surfaces and containment volumes.
 Scenes can be fully articulated and six common kitchen layouts are already included.
-Scene export to formats such as USD and URDF enable the use of various physic simulators.
+Although a lot of the included procedural assets and scenes are specific to the kitchen domain the software does not make any assumption about the type of the generated scenes.
+The scenes can be exported to formats such as USD and URDF enable the use of various physic simulators.
 `scene_synthesizer` has few dependencies and is easily extendable and customizable.
 
 # Example Use Cases
 
 We have used `scene_synthesizer` to train neural robot motion planners [@fishman2022motionpolicynetworks], neural collision checkers [@murali2023cabinet],
 pick-and-place policies [@yuan2023m2t2multitaskmaskedtransformer], visuomotor policies [@dalal2023optimus], to fine-tune Vision-Language Models [@yuan2024robopointvisionlanguagemodelspatial], and in planning-based data generation pipelines [@garrett2024simpler].
+In all these examples, data was generated in simulation based on procedurally generated scenes including object-filled shelves, tables, microwaves, countertops, cabinets, drawers, etc.
 
 # Acknowledgements
 
