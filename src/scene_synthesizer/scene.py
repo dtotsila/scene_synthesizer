@@ -3062,6 +3062,7 @@ class Scene(object):
         max_iter=100,
         distance_above_support=0.001,
         joint_type="floating",
+        valid_placement_fn=lambda obj_asset, support, placement_T: True,
         **kwargs,
     ):
         """Add object by placing it in a non-colliding pose on top of a support surface or inside a container.
@@ -3077,6 +3078,7 @@ class Scene(object):
             max_iter (int, optional): Maximum number of attempts to find a placement pose. Defaults to 100.
             distance_above_support (float, optional): Distance the object mesh will be placed above the support surface. Defaults to 0.0.
             joint_type (str, optional): The type of joint that will be used to connect this object to the scene ("floating" or "fixed"). None has a similar effect as "fixed". Defaults to "floating".
+            valid_placement_fn (function, optional): Function for testing valid placements. Defaults to returning True.
             **use_collision_geometry (bool, optional): Defaults to default_use_collision_geometry.
             **kwargs: Keyword arguments that will be delegated to add_object.
 
@@ -3115,6 +3117,7 @@ class Scene(object):
             max_iter=max_iter,
             distance_above_support=distance_above_support,
             joint_type=joint_type,
+            valid_placement_fn=valid_placement_fn,
             **kwargs,
         )
 
