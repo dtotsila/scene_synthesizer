@@ -1008,6 +1008,7 @@ class Scene(object):
         hole_extents=(0, 0),
         hole_offset=(0, 0),
         use_primitives=True,
+        object_ids=None,
     ):
         """Add walls/box assets to any combination of the six faces of the scene volume.
 
@@ -1018,9 +1019,11 @@ class Scene(object):
             hole_extents (list[float], optional): 2-dim extents of the hole in the wall. Defaults to (0, 0).
             hole_offset (tuple[float], optional): 2-dim position offset of the hole in the wall. Defaults to (0, 0).
             use_primitives (bool, optional): Whether to create a mesh or use a primitive. Defaults to True.
+            object_ids (list[str], optional): A list of object names used for adding walls, needs to have same length as dimensions. If None, names will be "wall_{dim}". Defaults to None
 
         Raises:
             ValueError: If overhang is not a float, or a list of length 3 or 6.
+            ValueError: If object_ids is not None and len(object_ids) != len(dimensions).
         """
         overhangs = None
         if isinstance(overhang, float):
@@ -1039,6 +1042,9 @@ class Scene(object):
                 overhangs = overhang
         if overhangs is None:
             raise ValueError("Overhang needs to be a float or a list with 3 or 6 floats.")
+
+        if object_ids is not None and len(object_ids) != len(dimensions):
+            raise ValueError("If object_ids is set it needs to have as many elements as dimensions.")
 
         extents = {
             "x": [
@@ -1085,7 +1091,11 @@ class Scene(object):
             "z": ("center", "center", "bottom"),
             "-z": ("center", "center", "top"),
         }
-        for dim in dimensions:
+
+        if object_ids is None:
+            object_ids = [f"wall_{dim}" for dim in dimensions]
+
+        for dim, obj_id in zip(dimensions, object_ids):
             if all(hole_extents):
                 wall = BoxWithHoleAsset(
                     *extents[dim],
@@ -1098,7 +1108,7 @@ class Scene(object):
 
             self.add_object(
                 wall,
-                f"wall_{dim}",
+                obj_id,
                 connect_parent_id=self._scene.graph.base_frame,
                 connect_parent_anchor=parent_achors[dim],
                 connect_obj_anchor=obj_anchors[dim],
