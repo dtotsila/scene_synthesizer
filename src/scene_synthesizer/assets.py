@@ -1818,51 +1818,59 @@ class TrimeshAsset(MeshAsset):
 
 
 class BoxAsset(TrimeshAsset):
-    def __init__(self, extents, **kwargs):
+    def __init__(self, extents, transform=None, **kwargs):
         """A box primitive.
 
         Args:
             extents (list[float]): 3D extents of the box.
+            transform (np.ndarray, optional):  4x4 homogeneous transformation matrix for box center. Defaults to None.
         """
-        super().__init__(mesh=trimesh.primitives.Box(extents=extents), **kwargs)
+        super().__init__(mesh=trimesh.primitives.Box(extents=extents, transform=transform), **kwargs)
 
 class BoxMeshAsset(TrimeshAsset):
-    def __init__(self, extents, **kwargs):
+    def __init__(self, extents, transform=None, **kwargs):
         """A triangular mesh in the shape of a box.
 
         Args:
             extents (list[float]): 3D extents of the box.
+            transform (np.ndarray, optional):  4x4 homogeneous transformation matrix for box center. Defaults to None.
         """
-        super().__init__(mesh=trimesh.creation.box(extents=extents), **kwargs)
+        super().__init__(mesh=trimesh.creation.box(extents=extents, transform=transform), **kwargs)
 
 class CylinderAsset(TrimeshAsset):
-    def __init__(self, radius, height, **kwargs):
+    def __init__(self, radius, height, transform=None, sections=32, **kwargs):
         """A cylinder primitive.
 
         Args:
             radius (float): Radius of cylinder.
             height (float): Height of cylinder.
+            transform (np.ndarray, optional):  4x4 homogeneous transformation matrix for cylinder center. Defaults to None.
+            sections (int, optional): Number of facets in circle. Defaults to 32.
         """
-        super().__init__(mesh=trimesh.primitives.Cylinder(radius=radius, height=height), **kwargs)
+        super().__init__(mesh=trimesh.primitives.Cylinder(radius=radius, height=height, transform=transform, sections=sections), **kwargs)
 
 class SphereAsset(TrimeshAsset):
-    def __init__(self, radius, **kwargs):
+    def __init__(self, radius, transform=None, subdivisions=3, **kwargs):
         """A sphere primitive.
 
         Args:
             radius (float): Radius of sphere.
+            transform (np.ndarray, optional):  4x4 homogeneous transformation matrix for sphere center. Defaults to None.
+            subdivisions (int, optional): Number of subdivisions for icosphere. Defaults to 3.
         """
-        super().__init__(mesh=trimesh.primitives.Sphere(radius=radius), **kwargs)
+        super().__init__(mesh=trimesh.primitives.Sphere(radius=radius, transform=transform, subdivisions=subdivisions), **kwargs)
 
 class CapsuleAsset(TrimeshAsset):
-    def __init__(self, radius, height, **kwargs):
+    def __init__(self, radius, height, transform=None, sections=32, **kwargs):
         """A capsule primitive.
 
         Args:
             radius (float): Radius of cylindrical part (and spherical end parts).
             height (float): Height of cylindrical part. Total height of capsule will be height + 2*radius.
+            transform (np.ndarray, optional):  4x4 homogeneous transformation matrix for capsule center. Defaults to None.
+            sections (int, optional): Number of facets in circle. Defaults to 32.
         """
-        super().__init__(mesh=trimesh.primitives.Capsule(radius=radius, height=height), **kwargs)
+        super().__init__(mesh=trimesh.primitives.Capsule(radius=radius, height=height, transform=transform, sections=sections), **kwargs)
 
 
 class TrimeshSceneAsset(Asset):
