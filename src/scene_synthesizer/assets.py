@@ -1539,6 +1539,9 @@ class MJCFAsset(Asset):
         def create_identifier(elem):
             if elem == worldbody:
                 return namespace
+            log.debug(f"Create identifier for MJCF element: {elem} (full: {elem.full_identifier})")
+            if elem.full_identifier is None:
+                return None
             return namespace + '/' + elem.full_identifier.replace("/", "")
         
         return create_identifier
@@ -1564,11 +1567,14 @@ class MJCFAsset(Asset):
 
         if elem.tag == "body":
             log.debug(f"Adding body {identifier_fn(elem)} to {identifier_fn(elem.parent)}")
+
+            body_T = self._get_transform(elem, rad_conversion_fn)
+
             node_name = utils.add_node_to_scene(
                 scene=scene,
                 parent_node_name=identifier_fn(elem.parent),
                 node_name=identifier_fn(elem),
-                transform=np.eye(4),
+                transform=body_T,
             )
         elif elem.tag == "geom":
             log.debug(f"Adding geom {identifier_fn(elem)} to {identifier_fn(elem.parent)}")
@@ -1579,6 +1585,12 @@ class MJCFAsset(Asset):
                     trimesh.util.wrap_as_stream(elem.mesh.file.contents),
                     file_type=elem.mesh.file.extension[1:],
                 )
+                
+                if hasattr(elem.mesh, 'scale') and elem.mesh.scale is not None:
+                    geometry.apply_scale(elem.mesh.scale)
+
+                geometry_T = self._get_transform(elem, rad_conversion_fn)
+                geometry.apply_transform(geometry_T)
 
                 # Set mesh material
                 if elem.material is not None:
@@ -1600,7 +1612,7 @@ class MJCFAsset(Asset):
                         # 'roughness'
                         # 'rgba'
 
-                        geometry.visual = trimesh.visual.ColorVisuals(mesh=geometry, face_colors=face_colors)   
+                        geometry.visual = trimesh.visual.ColorVisuals(mesh=geometry, face_colors=face_colors)
             elif elem.type == "sphere":
                 # The sphere type defines a sphere.
                 # Only one size parameter is used, specifying the radius of the sphere.
@@ -1693,6 +1705,19 @@ class MJCFAsset(Asset):
         for child in elem.all_children():
             self._traverse_xml_tree(elem=child, node_name=node_name, scene=scene, identifier_fn=identifier_fn, rad_conversion_fn=rad_conversion_fn, use_collision_geometry=use_collision_geometry)
     
+    def _get_default_joint_attribute(self, attribute, joint, my_default):
+        joint_value = getattr(joint, attribute, None)
+        if joint_value is None:
+            joint_default = joint.dclass
+            while joint_default is not None and joint_value is None and joint_default != joint_default.root:
+                joint_value = getattr(joint_default.joint, attribute)
+                joint_default = joint_default.parent
+
+        if joint_value is None:
+            return my_default
+
+        return joint_value
+
     def _add_mjcf_joint(self, scene, scene_edge_data, parent_node, child_node, joint, identifier_fn, rad_conversion_fn):
         new_parent_node = scene.graph.transforms.parents[child_node]
 
@@ -1712,12 +1737,20 @@ class MJCFAsset(Asset):
             limit_lower = rad_conversion_fn(joint.range[0])
             limit_upper = rad_conversion_fn(joint.range[1])
 
-        joint_pos = joint.pos if joint.pos is not None else [0., 0., 0.]
+        # Check default values
+        joint_range = self._get_default_joint_attribute('range', joint, None)
+        if joint_range is None:
+            limit_lower, limit_upper = self._default_joint_limit_lower, self._default_joint_limit_upper
+        else:
+            limit_lower, limit_upper = rad_conversion_fn(joint_range[0]), rad_conversion_fn(joint_range[1])
+        joint_pos = self._get_default_joint_attribute('pos', joint, [0., 0., 0.])
+        joint_axis = self._get_default_joint_attribute('axis', joint, [0., 0., 1.])
+        joint_type = self._get_default_joint_attribute('type', joint, 'revolute')    
+        if joint_type == "slide":
+            joint_type = "prismatic"
 
-        joint_type = "prismatic" if joint.type == 'slide' else "revolute"
-
-        joint_axis = joint.axis if joint.axis is not None else [0., 0., 1.]
-
+        print(joint_pos, joint_type, joint_axis, limit_lower, limit_upper)
+        
         # add edges
         scene_edge_data[(new_parent_node, new_child_node)].update(
             {
