@@ -1041,6 +1041,11 @@ class Scene(object):
             overhangs = [0.0] * 6
             for i, d in enumerate(dimensions):
                 overhangs[dim_to_index[d]] = overhang[i]
+        elif isinstance(overhang, list) and len(overhang) == 6:
+            print("DEBUG: Allow overhand for all dimensions, even if absent in dimensions list, to increase wall height.")
+            overhangs = [0.0] * 6
+            for i, d in enumerate(dimensions):
+                overhangs[dim_to_index[d]] = overhang[i]
 
         if overhangs is None:
             raise ValueError("Overhang needs to be a float or a list with len(dimensions) floats.")
